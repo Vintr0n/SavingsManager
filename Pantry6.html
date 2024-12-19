@@ -195,7 +195,184 @@
   </div>
 
   <script>
-    // JavaScript remains unchanged
+    const pantryId = "c9d3e7d5-c2f2-4ab1-b713-c47987db5a85"; // Pantry ID
+    const baseUrl = `https://getpantry.cloud/apiv1/pantry/${pantryId}`;
+
+    // Fetch all baskets
+    async function fetchBaskets() {
+      const response = await fetch(baseUrl);
+      const data = await response.json();
+      const baskets = data.baskets;
+      const container = document.getElementById('baskets-container');
+      container.innerHTML = ''; // Clear previous content
+
+      for (const basket of baskets) {
+        const basketElement = document.createElement('div');
+        basketElement.className = 'basket';
+
+        basketElement.innerHTML = `
+          <h2 onclick="toggleTransactions('${basket.name}')">${basket.name}</h2>
+          <div class="current-amount" id="current-${basket.name}">Loading...</div>
+          <div class="transaction-box">
+            <input type="number" id="input-${basket.name}" placeholder="Enter amount">
+            <button class="add" id="add-${basket.name}" onclick="updateBasket('${basket.name}', 'add')">Add</button>
+            <button class="subtract" id="subtract-${basket.name}" onclick="updateBasket('${basket.name}', 'subtract')">Subtract</button>
+          </div>
+          <div class="transactions" id="transactions-${basket.name}">
+            <ul id="transaction-list-${basket.name}"></ul>
+          </div>
+        `;
+
+        container.appendChild(basketElement);
+        fetchBasketDetails(basket.name);
+      }
+    }
+
+    // Fetch basket details
+    async function fetchBasketDetails(basketName) {
+      const response = await fetch(`${baseUrl}/basket/${basketName}`);
+      const data = await response.json();
+      document.getElementById(`current-${basketName}`).textContent = `Current amount: £${data.currentAmount}`;
+    }
+
+    // Update basket with a new transaction
+    async function updateBasket(basketName, type) {
+      const input = document.getElementById(`input-${basketName}`);
+      const addButton = document.getElementById(`add-${basketName}`);
+      const subtractButton = document.getElementById(`subtract-${basketName}`);
+      const transactionsDiv = document.getElementById(`transactions-${basketName}`);
+      const amount = parseFloat(input.value);
+
+      if (isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+
+      // Disable buttons and close transactions
+      addButton.classList.add('disabled');
+      subtractButton.classList.add('disabled');
+      addButton.disabled = true;
+      subtractButton.disabled = true;
+      transactionsDiv.style.display = 'none';
+
+      const response = await fetch(`${baseUrl}/basket/${basketName}`);
+      const data = await response.json();
+
+      // Add new transaction
+      const newTransaction = {
+        amount: type === 'add' ? amount : -amount,
+        type: type,
+        timestamp: new Date().toISOString(),
+      };
+      data.transactions.push(newTransaction);
+      data.currentAmount += type === 'add' ? amount : -amount;
+
+      // Update the basket in the API
+      await fetch(`${baseUrl}/basket/${basketName}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      // Refresh UI
+      fetchBasketDetails(basketName);
+      input.value = '';
+
+      // Re-enable buttons after 2 seconds
+      setTimeout(() => {
+        addButton.classList.remove('disabled');
+        subtractButton.classList.remove('disabled');
+        addButton.disabled = false;
+        subtractButton.disabled = false;
+      }, 2000);
+    }
+
+    // Toggle transaction visibility
+    async function toggleTransactions(basketName) {
+      const transactionsDiv = document.getElementById(`transactions-${basketName}`);
+      const transactionList = document.getElementById(`transaction-list-${basketName}`);
+
+      if (transactionsDiv.style.display === 'none' || transactionsDiv.style.display === '') {
+        const response = await fetch(`${baseUrl}/basket/${basketName}`);
+        const data = await response.json();
+
+        transactionList.innerHTML = '';
+        const latestTransactions = data.transactions.slice(-10).reverse();
+        latestTransactions.forEach((transaction) => {
+          const li = document.createElement('li');
+          li.textContent = `${transaction.timestamp} - £${transaction.amount} (${transaction.type})`;
+          transactionList.appendChild(li);
+        });
+
+        transactionsDiv.style.display = 'block';
+      } else {
+        transactionsDiv.style.display = 'none';
+      }
+    }
+
+    async function createNewBasket() {
+      const basketName = prompt("What is the name of the new basket?"); // Show popup to enter basket name
+      if (!basketName) return; // Exit if the user cancels or enters nothing
+
+      const postUrl = `${baseUrl}/basket/${basketName}`;
+      const today = new Date().toISOString();
+
+      // JSON for initializing the new basket
+      const newBasketData = {
+        currentAmount: 0,
+        transactions: [
+          {
+            amount: 0,
+            type: "add",
+            timestamp: today,
+          },
+        ],
+      };
+
+      try {
+        // POST request to create the new basket
+        await fetch(postUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(newBasketData),
+        });
+
+        // Add the new basket to the UI
+        addBasketToUI(basketName, 0);
+      } catch (error) {
+        console.error("Error creating basket:", error);
+      }
+    }
+
+    // Dynamically add a basket to the UI
+    function addBasketToUI(basketName, currentAmount) {
+      const container = document.getElementById("baskets-container");
+
+      const basketElement = document.createElement("div");
+      basketElement.className = "basket";
+
+      basketElement.innerHTML = `
+        <h2 onclick="toggleTransactions('${basketName}')">${basketName}</h2>
+        <div class="current-amount" id="current-${basketName}">Current amount: £${currentAmount}</div>
+        <div class="transaction-box">
+          <input type="number" id="input-${basketName}" placeholder="Enter amount">
+          <button class="add" id="add-${basketName}" onclick="updateBasket('${basketName}', 'add')">Add</button>
+          <button class="subtract" id="subtract-${basketName}" onclick="updateBasket('${basketName}', 'subtract')">Subtract</button>
+        </div>
+        <div class="transactions" id="transactions-${basketName}">
+          <ul id="transaction-list-${basketName}"></ul>
+        </div>
+      `;
+
+      container.appendChild(basketElement);
+    }
+
+    // Initialize
+    fetchBaskets();
   </script>
 </body>
 </html>
