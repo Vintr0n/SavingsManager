@@ -25,6 +25,14 @@
       justify-content: center;
     }
 
+    .total {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #333;
+    }
+
     .main {
       display: flex;
       flex-direction: column;
@@ -180,6 +188,9 @@
   <div class="header">
     Savings Manager 🍊
   </div>
+  <div class="total" id="total-amount">
+    Total Savings: £0
+  </div>
   <div class="main">
     <div class="menu">
       <h3>Basket Actions</h3>
@@ -202,6 +213,8 @@
       const container = document.getElementById('baskets-container');
       container.innerHTML = ''; // Clear previous content
 
+      let totalSavings = 0; // Initialize total savings
+
       for (const basket of baskets) {
         const basketElement = document.createElement('div');
         basketElement.className = 'basket';
@@ -220,8 +233,12 @@
         `;
 
         container.appendChild(basketElement);
-        fetchBasketDetails(basket.name);
+        const currentAmount = await fetchBasketDetails(basket.name);
+        totalSavings += currentAmount; // Add the current basket amount to total
       }
+
+      // Update total savings
+      document.getElementById('total-amount').textContent = `Total Savings: £${totalSavings}`;
     }
 
     // Fetch basket details
@@ -229,6 +246,7 @@
       const response = await fetch(`${baseUrl}/basket/${basketName}`);
       const data = await response.json();
       document.getElementById(`current-${basketName}`).textContent = `Current amount: £${data.currentAmount}`;
+      return data.currentAmount;
     }
 
     // Update basket with a new transaction
@@ -273,16 +291,8 @@
       });
 
       // Refresh UI
-      fetchBasketDetails(basketName);
+      fetchBaskets();
       input.value = '';
-
-      // Re-enable buttons after 2 seconds
-      setTimeout(() => {
-        addButton.classList.remove('disabled');
-        subtractButton.classList.remove('disabled');
-        addButton.disabled = false;
-        subtractButton.disabled = false;
-      }, 2000);
     }
 
     // Toggle transaction visibility
@@ -338,33 +348,10 @@
         });
 
         // Add the new basket to the UI
-        addBasketToUI(basketName, 0);
+        fetchBaskets();
       } catch (error) {
         console.error("Error creating basket:", error);
       }
-    }
-
-    // Dynamically add a basket to the UI
-    function addBasketToUI(basketName, currentAmount) {
-      const container = document.getElementById("baskets-container");
-
-      const basketElement = document.createElement("div");
-      basketElement.className = "basket";
-
-      basketElement.innerHTML = `
-        <h2 onclick="toggleTransactions('${basketName}')">${basketName}</h2>
-        <div class="current-amount" id="current-${basketName}">Current amount: £${currentAmount}</div>
-        <div class="transaction-box">
-          <input type="number" id="input-${basketName}" placeholder="Enter amount">
-          <button class="add" id="add-${basketName}" onclick="updateBasket('${basketName}', 'add')">Add</button>
-          <button class="subtract" id="subtract-${basketName}" onclick="updateBasket('${basketName}', 'subtract')">Subtract</button>
-        </div>
-        <div class="transactions" id="transactions-${basketName}">
-          <ul id="transaction-list-${basketName}"></ul>
-        </div>
-      `;
-
-      container.appendChild(basketElement);
     }
 
     // Initialize
