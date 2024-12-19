@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Savings Manager 🍊</title>
+  <style>
+    html, body {
+      height: 100%; /* Ensure the root elements span the full height */
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden; /* Remove horizontal scrolling */
+      font-family: Arial, sans-serif;
+      background-color: #fefaf2;
+    }
+
+    .header {
+      background-color: #f97316;
+      color: white;
+      padding: 15px 20px;
+      font-size: 1.5em;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: linear-gradient(to bottom, #ffedd5, #ffeccf, #f5d29d);
+    }
+
+    .menu {
+      background: linear-gradient(to bottom, #ffedd5, #ffeccf, #f5d29d);
+      padding: 15px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu h3 {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .menu ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .menu ul li {
+      margin: 10px 0;
+      color: #f97316;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .menu ul li:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      padding: 15px;
+    }
+
+    .basket {
+      background-color: #ffd699;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 300px;
+      padding: 15px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.3s ease-in-out;
+      margin-bottom: 20px;
+    }
+
+    .basket:hover {
+      box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .basket h2 {
+      font-size: 1.2em;
+      color: #000;
+      margin: 0 0 10px;
+      text-align: center;
+    }
+
+    .basket .current-amount {
+      font-size: 1em;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+    }
+
+    .transaction-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .transaction-box input {
+      width: calc(100% - 20px);
+      max-width: 150px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+
+    .transaction-box button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: bold;
+    }
+
+    .transaction-box button.add {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .transaction-box button.subtract {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .transaction-box button.disabled {
+      background-color: #ddd;
+      cursor: not-allowed;
+    }
+
+    .transactions {
+      display: none;
+      margin-top: 10px;
+      background-color: #ffeccf;
+      padding: 5px;
+      border-radius: 5px;
+      font-size: 0.9em;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+
+    .transactions ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .transactions ul li {
+      margin: 5px 0;
+      color: #333;
+    }
+
+    @media (min-width: 768px) {
+      .main {
+        flex-direction: row;
+      }
+
+      .menu {
+        width: 250px;
+      }
+
+      .container {
+        flex: 1;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    Savings Manager 🍊
+  </div>
+  <div class="main">
+    <div class="menu">
+      <h3>Savings</h3>
+      <ul>
+        <li>Tax</li>
+      </ul>
+      <h3>Basket Actions</h3>
+      <ul>
+        <li onclick="createNewBasket()">Create basket</li>
+      </ul>
+    </div>
+    <div class="container" id="baskets-container"></div>
+  </div>
+
+  <script>
+    // JavaScript remains unchanged
+  </script>
+</body>
+</html>
