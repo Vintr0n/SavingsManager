@@ -204,24 +204,28 @@ if (!userSecret) {
 }
 
 const base64Secret = btoa(userSecret); // Convert the secret to Base64
-const extracted = base64Secret.slice(2, 5); // Extract a slice for transformations
+const match = base64Secret.match(/\d+/); // Extract the numeric part (e.g., "96" from "Um96")
 
-// Ensure extracted characters are valid
-if (extracted.length < 3) {
+if (!match) {
   alert("Invalid secret provided. Unable to proceed.");
-  throw new Error("Invalid secret length.");
+  throw new Error("Invalid secret: No numeric part found.");
 }
 
-// Complex transformations to derive characters and numbers
-const partA = (extracted.charCodeAt(0) * 2 + 5) % 26 + 65; // Ensure a valid letter
-const partB = String.fromCharCode((extracted.charCodeAt(1) + 7) % 26 + 65); // Rotate second char within A-Z
-const partC = Math.floor(((extracted.charCodeAt(2) ** 2) / 100) % 10); // Numeric result
-const partD = extracted.charCodeAt(1) ^ 42; // XOR for numeric obfuscation
+const digits = match[0]; // Extracted "96"
+const firstDigit = parseInt(digits[0], 10); // 9
+const secondDigit = parseInt(digits[1], 10); // 6
+
+// Perform obfuscation using the extracted digits
+const partA = String.fromCharCode(65 + (firstDigit * 3) % 26); // A letter derived from 9
+const partB = String.fromCharCode(65 + (secondDigit + 5) % 26); // A letter derived from 6
+const partC = (firstDigit + secondDigit) % 10; // Single digit
+const partD = (firstDigit * secondDigit) ^ 42; // Numeric obfuscation with XOR
 
 // Build the obfuscated Pantry ID
-const pantryId = `c${String.fromCharCode(partA)}d3e7d${partB}-c${partC}f2-4ab1-b713-c${partD}a85`;
+const pantryId = `c${partA}d3e7d${partB}-c${partC}f2-4ab1-b713-c${partD}a85`;
 
 console.log("Obfuscated Pantry ID:", pantryId);
+
 
 
     
