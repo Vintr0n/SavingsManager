@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pantry 🍊</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      font-family: Arial, sans-serif;
+      background-color: #fefaf2;
+    }
+
+    .header {
+      background-color: #f97316;
+      color: white;
+      padding: 15px 20px;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .total {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: linear-gradient(to bottom, #ffedd5, #ffeccf, #f5d29d);
+    }
+
+    .menu {
+      background: linear-gradient(to bottom, #ffedd5, #ffeccf, #f5d29d);
+      padding: 15px;
+      box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .menu h3 {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      color: #333;
+    }
+
+    .menu ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .menu ul li {
+      margin: 10px 0;
+      color: #f97316;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .menu ul li:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      padding: 15px;
+    }
+
+    .basket {
+      background-color: #ffd699;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 300px;
+      padding: 15px;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+      transition: box-shadow 0.3s ease-in-out;
+      margin-bottom: 20px;
+    }
+
+    .basket:hover {
+      box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .basket h2 {
+      font-size: 1.2em;
+      color: #000;
+      margin: 0 0 10px;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .basket .current-amount {
+      font-size: 1em;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+    }
+
+    .transaction-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .transaction-box input {
+      width: calc(100% - 20px);
+      max-width: 150px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+
+    .transaction-box button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: bold;
+    }
+
+    .transaction-box button.add {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    .transaction-box button.subtract {
+      background-color: #f44336;
+      color: white;
+    }
+
+    .transactions {
+      display: none;
+      margin-top: 10px;
+      background-color: #ffeccf;
+      padding: 5px;
+      border-radius: 5px;
+      font-size: 0.9em;
+      max-height: 100px;
+      overflow-y: auto;
+    }
+
+    .transactions ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .transactions ul li {
+      margin: 5px 0;
+      color: #333;
+    }
+
+    @media (min-width: 768px) {
+      .main {
+        flex-direction: row;
+      }
+
+      .menu {
+        width: 250px;
+      }
+
+      .container {
+        flex: 1;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    Savings Manager 🍊
+  </div>
+  <div class="total" id="total-amount">
+    Total Savings: £0
+  </div>
+  <div class="main">
+    <div class="menu">
+      <h3>Basket Actions</h3>
+      <ul>
+        <li onclick="createNewBasket()">Create basket</li>
+      </ul>
+    </div>
+    <div class="container" id="baskets-container"></div>
+  </div>
+
+  <script>
+
+const userSecret = prompt("Enter the secret:");
+const base64Secret = btoa(userSecret);
+const extracted = base64Secret.slice(2, 5);
+
+const partA = extracted.charCodeAt(0) * 2 + 5; 
+const partB = String.fromCharCode((extracted.charCodeAt(1) + 7) % 26 + 65);
+const partC = Math.floor((extracted.charCodeAt(2) ** 2) / 100) % 10; 
+const partD = extracted.charCodeAt(1) ^ 42; 
+
+const pantryId = `c${String.fromCharCode(partA % 26 + 65)}d3e7d${partB}-c${partC}f2-4ab1-b713-c${partD}a85`;
+
+
+    
+    const baseUrl = `https://getpantry.cloud/apiv1/pantry/${pantryId}`;
+    let basketsCache = {}; // Caches for baskets and total
+    let totalSavings = 0;
+
+    // Fetch all baskets
+    async function fetchBaskets() {
+      const response = await fetch(baseUrl);
+      const data = await response.json();
+      const baskets = data.baskets;
+      basketsCache = {}; // Reset cache
+      totalSavings = 0; // Reset total savings
+
+      const container = document.getElementById('baskets-container');
+      container.innerHTML = ''; // Clear previous content
+
+      baskets.forEach(basket => {
+        basketsCache[basket.name] = {
+          currentAmount: 0,
+          transactions: []
+        };
+
+        const basketElement = createBasketElement(basket.name);
+        container.appendChild(basketElement);
+        fetchBasketDetails(basket.name);
+      });
+    }
+
+    // Create basket element
+    function createBasketElement(basketName) {
+      const basketElement = document.createElement('div');
+      basketElement.className = 'basket';
+
+      basketElement.innerHTML = `
+        <h2 onclick="toggleTransactions('${basketName}')">${basketName}</h2>
+        <div class="current-amount" id="current-${basketName}">£0</div>
+        <div class="transaction-box">
+          <input type="number" id="input-${basketName}" placeholder="Enter amount">
+          <button class="add" onclick="updateBasket('${basketName}', 'add')">Add</button>
+          <button class="subtract" onclick="updateBasket('${basketName}', 'subtract')">Subtract</button>
+        </div>
+        <div class="transactions" id="transactions-${basketName}">
+          <ul id="transaction-list-${basketName}"></ul>
+        </div>
+      `;
+
+      return basketElement;
+    }
+
+    // Fetch basket details
+    async function fetchBasketDetails(basketName) {
+      const response = await fetch(`${baseUrl}/basket/${basketName}`);
+      const data = await response.json();
+
+      basketsCache[basketName].currentAmount = data.currentAmount;
+      basketsCache[basketName].transactions = data.transactions;
+
+      updateBasketUI(basketName);
+    }
+
+    // Update basket UI
+    function updateBasketUI(basketName) {
+      document.getElementById(`current-${basketName}`).textContent = `£${basketsCache[basketName].currentAmount}`;
+
+      totalSavings = Object.values(basketsCache).reduce((acc, basket) => acc + basket.currentAmount, 0);
+      document.getElementById('total-amount').textContent = `Total Savings: £${totalSavings}`;
+    }
+
+    // Update basket
+    function updateBasket(basketName, type) {
+      const input = document.getElementById(`input-${basketName}`);
+      const amount = parseFloat(input.value);
+
+      if (isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+
+      const change = type === 'add' ? amount : -amount;
+      basketsCache[basketName].currentAmount += change;
+
+      const newTransaction = {
+        amount: change,
+        type,
+        timestamp: new Date().toISOString(),
+      };
+      basketsCache[basketName].transactions.push(newTransaction);
+
+      updateBasketUI(basketName);
+
+      // Send update to API in the background
+      fetch(`${baseUrl}/basket/${basketName}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentAmount: basketsCache[basketName].currentAmount,
+          transactions: basketsCache[basketName].transactions,
+        }),
+      });
+
+      input.value = '';
+    }
+
+    // Toggle transactions visibility
+    function toggleTransactions(basketName) {
+      const transactionsDiv = document.getElementById(`transactions-${basketName}`);
+      const transactionList = document.getElementById(`transaction-list-${basketName}`);
+
+      if (transactionsDiv.style.display === 'none' || transactionsDiv.style.display === '') {
+        transactionList.innerHTML = '';
+
+        basketsCache[basketName].transactions.forEach(transaction => {
+          const li = document.createElement('li');
+          li.textContent = `${transaction.timestamp} - £${transaction.amount} (${transaction.type})`;
+          transactionList.appendChild(li);
+        });
+
+        transactionsDiv.style.display = 'block';
+      } else {
+        transactionsDiv.style.display = 'none';
+      }
+    }
+
+    // Create a new basket
+    async function createNewBasket() {
+      const basketName = prompt("Enter the name of the new basket:");
+      if (!basketName) return;
+
+      const newBasketData = {
+        currentAmount: 0,
+        transactions: [],
+      };
+
+      basketsCache[basketName] = newBasketData;
+      const basketElement = createBasketElement(basketName);
+      document.getElementById('baskets-container').appendChild(basketElement);
+      updateBasketUI(basketName);
+
+      await fetch(`${baseUrl}/basket/${basketName}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newBasketData),
+      });
+    }
+
+    // Initialize
+    fetchBaskets();
+
+    
+  </script>
+</body>
+</html>
