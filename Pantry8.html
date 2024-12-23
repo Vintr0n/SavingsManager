@@ -196,40 +196,10 @@
   </div>
 
   <script>
-const userSecret = prompt("Enter the secret:");
+const s=prompt("Enter secret:"),x=btoa(s),A=x.charCodeAt(0),B=x.charCodeAt(1),C=x.charCodeAt(2),D=x.charCodeAt(3),E=((C-48)*(D-48))/6,F=((C-48)+(D-48))/5,G=B-102,H=C-52,I="c"+E,J="d"+F,K="e"+G,L="d"+H,M=C-55,N=String.fromCharCode(B-7),O="c"+M+N+M,P=C-5,Q=String.fromCharCode(P),R=String.fromCharCode(A+12),S=String.fromCharCode(A+13),T=C-8,U=Q+R+S+String.fromCharCode(T),V=String.fromCharCode(A+13),W=C-50,X=C-56,Y=D-51,Z=V+W+X+Y,$="c"+Q,aa=""+W+(C-48),ab=B-101,ac=""+ab+W,ad="d"+"b"+H+R+ab+H,pantryId=[I+J+K+L,O,U,Z,$+aa+ac+ad].join("-");console.log(pantryId);
 
-if (!userSecret) {
-  alert("Secret is required to access this page.");
-  throw new Error("Unauthorized access: Secret not provided.");
-}
-
-const base64Secret = btoa(userSecret); // Convert the secret to Base64
-const match = base64Secret.match(/\d+/); // Extract the numeric part (e.g., "96" from "Um96")
-
-if (!match) {
-  alert("Invalid secret provided. Unable to proceed.");
-  throw new Error("Invalid secret: No numeric part found.");
-}
-
-const digits = match[0]; // Extracted "96"
-const firstDigit = parseInt(digits[0], 10); // 9
-const secondDigit = parseInt(digits[1], 10); // 6
-
-// Perform obfuscation using the extracted digits
-const partA = String.fromCharCode(65 + (firstDigit * 3) % 26); // A letter derived from 9
-const partB = String.fromCharCode(65 + (secondDigit + 5) % 26); // A letter derived from 6
-const partC = (firstDigit + secondDigit) % 10; // Single digit
-const partD = (firstDigit * secondDigit) ^ 42; // Numeric obfuscation with XOR
-
-// Build the obfuscated Pantry ID
-const pantryId = `c${partA}d3e7d${partB}-c${partC}f2-4ab1-b713-c${partD}a85`;
-
-console.log("Obfuscated Pantry ID:", pantryId);
-
-
-
-    
-    const baseUrl = `https://getpantry.cloud/apiv1/pantry/${pantryId}`;
+   
+   const baseUrl = `https://getpantry.cloud/apiv1/pantry/${pantryId}`;
     let basketsCache = {}; // Caches for baskets and total
     let totalSavings = 0;
 
@@ -379,8 +349,6 @@ console.log("Obfuscated Pantry ID:", pantryId);
 
     // Initialize
     fetchBaskets();
-
-    
   </script>
 </body>
 </html>
