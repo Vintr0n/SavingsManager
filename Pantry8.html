@@ -196,17 +196,32 @@
   </div>
 
   <script>
-
 const userSecret = prompt("Enter the secret:");
-const base64Secret = btoa(userSecret);
-const extracted = base64Secret.slice(2, 5);
 
-const partA = extracted.charCodeAt(0) * 2 + 5; 
-const partB = String.fromCharCode((extracted.charCodeAt(1) + 7) % 26 + 65);
-const partC = Math.floor((extracted.charCodeAt(2) ** 2) / 100) % 10; 
-const partD = extracted.charCodeAt(1) ^ 42; 
+if (!userSecret) {
+  alert("Secret is required to access this page.");
+  throw new Error("Unauthorized access: Secret not provided.");
+}
 
-const pantryId = `c${String.fromCharCode(partA % 26 + 65)}d3e7d${partB}-c${partC}f2-4ab1-b713-c${partD}a85`;
+const base64Secret = btoa(userSecret); // Convert the secret to Base64
+const extracted = base64Secret.slice(2, 5); // Extract a slice for transformations
+
+// Ensure extracted characters are valid
+if (extracted.length < 3) {
+  alert("Invalid secret provided. Unable to proceed.");
+  throw new Error("Invalid secret length.");
+}
+
+// Complex transformations to derive characters and numbers
+const partA = (extracted.charCodeAt(0) * 2 + 5) % 26 + 65; // Ensure a valid letter
+const partB = String.fromCharCode((extracted.charCodeAt(1) + 7) % 26 + 65); // Rotate second char within A-Z
+const partC = Math.floor(((extracted.charCodeAt(2) ** 2) / 100) % 10); // Numeric result
+const partD = extracted.charCodeAt(1) ^ 42; // XOR for numeric obfuscation
+
+// Build the obfuscated Pantry ID
+const pantryId = `c${String.fromCharCode(partA)}d3e7d${partB}-c${partC}f2-4ab1-b713-c${partD}a85`;
+
+console.log("Obfuscated Pantry ID:", pantryId);
 
 
     
