@@ -262,37 +262,46 @@
         return;
       }
 
-      // Disable buttons and close transactions
+      // Disable buttons
       addButton.classList.add('disabled');
       subtractButton.classList.add('disabled');
       addButton.disabled = true;
       subtractButton.disabled = true;
-      transactionsDiv.style.display = 'none';
 
-      const response = await fetch(`${baseUrl}/basket/${basketName}`);
-      const data = await response.json();
+      try {
+        const response = await fetch(`${baseUrl}/basket/${basketName}`);
+        const data = await response.json();
 
-      // Add new transaction
-      const newTransaction = {
-        amount: type === 'add' ? amount : -amount,
-        type: type,
-        timestamp: new Date().toISOString(),
-      };
-      data.transactions.push(newTransaction);
-      data.currentAmount += type === 'add' ? amount : -amount;
+        // Add new transaction
+        const newTransaction = {
+          amount: type === 'add' ? amount : -amount,
+          type: type,
+          timestamp: new Date().toISOString(),
+        };
+        data.transactions.push(newTransaction);
+        data.currentAmount += type === 'add' ? amount : -amount;
 
-      // Update the basket in the API
-      await fetch(`${baseUrl}/basket/${basketName}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+        // Update the basket in the API
+        await fetch(`${baseUrl}/basket/${basketName}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
 
-      // Refresh UI
-      fetchBaskets();
-      input.value = '';
+        // Refresh basket details and total savings
+        fetchBasketDetails(basketName);
+        fetchBaskets();
+      } catch (error) {
+        console.error("Error updating basket:", error);
+      } finally {
+        // Re-enable buttons
+        addButton.classList.remove('disabled');
+        subtractButton.classList.remove('disabled');
+        addButton.disabled = false;
+        subtractButton.disabled = false;
+      }
     }
 
     // Toggle transaction visibility
